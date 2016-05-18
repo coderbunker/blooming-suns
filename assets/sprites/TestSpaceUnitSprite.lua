@@ -1,6 +1,6 @@
---TestUnitSprite
+--TestSpaceUnitSprite
 local sprite = {
-  spritesheet = "noble", --tileset reference
+  spritesheet = "cadiz", --tileset reference
   sprite_name = nil, --name of this sprite
   frame_duration = nil, --speed of animation
   animations = {  --arrays of quads
