@@ -11,17 +11,31 @@ Populator.new = function (init)
 
     for j = 0, nc - 1 do
       for i = 0, nr - 1 do
-        --Randomly Determine terrain
+        --TODO: Randomly Determine terrain
+
         local terrain_type = "Grass";
-        if math.random() > 0.25 then terrain_type = "Grass" else terrain_type = "Wood" end
+        local rand = math.random()
+        if i <= 2 or nr - i  < 3 then
+          terrain_type = "Ice"
+        elseif (i <= 5 or nr - i < 6) and rand > 0.5 then
+          terrain_type = "Tundra"
+        elseif rand > 0.45 then
+          terrain_type = "Ocean"
+        elseif rand > 0.4 then
+          terrain_type = "Desert"
+        elseif rand > 0.2 then
+          terrain_type = "Steppe"
+        end
+
 
         --Figure out Array, Pixel, & Grid Coordinates
         local col = j
         local row = i
         local idx = col * nr + row
-        local px_x = col * map.tilesize --TODO: Make Pixel location accomodate truly hexagonal tiles
-        local px_y = row * map.tilesize --TODO: Make Pixel location accomodate truly hexagonal tiles
-        if j % 2 == 0 then px_y = px_y + map.tilesize / 2 end
+        local size = map.hex_size
+
+        local px_x = size * 3 / 2 * col
+        local px_y = size * math.sqrt(3) * (row - 0.5 * (col % 2))
 
         local new_tile = Tile.new({
           position = {
@@ -35,12 +49,16 @@ Populator.new = function (init)
         })
         new_tile.setTerrain(terrain_type)
 
-        if math.random() < 0.05 then
-          local new_unit = Unit.new({sprite = "TestUnit"})
-          new_tile.relocateUnit(new_unit)
-        elseif math.random() < 0.05 then
-          local new_unit = Unit.new({sprite = "TestSpaceUnit"})
-          new_tile.relocateUnit(new_unit)
+        rand = math.random()
+        if rand < 0.05 then
+          if terrain_type == "Ocean" then
+            local new_unit = Unit.new({sprite = "TestSpaceUnit"})
+            new_tile.relocateUnit(new_unit)
+          else
+            local new_unit = Unit.new({sprite = "TestUnit"})
+            new_tile.relocateUnit(new_unit)
+          end
+        elseif rand < 0.1 then
         end
 
         map.tiles[idx] = new_tile

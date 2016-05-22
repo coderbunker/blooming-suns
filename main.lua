@@ -1,20 +1,18 @@
 require('Tile');
 require('Tilemap');
-require('TilemapCamera');
+require('PlanetsideTilemapCameraComponent');
+require('PlanetsideTilemapView');
+require('AlertBoxView');
 require('SpriteBank');
 require('Sprite');
 require('SpriteInstance');
 require('Populator');
 require('Unit');
+require('ViewManager');
+require('ViewComponent');
+require('View');
 
 inspect = require('lib/inspect');
-
-function love.conf(t) 
-  t.title = 'Sovereign of the Blooming Suns'
-  t.window.width = 800
-  t.window.height = 600
-  t.fullscreen = false
-end
 
 function love.load()
 
@@ -23,44 +21,49 @@ function love.load()
   GlobalSpriteBank = SpriteBank.new()
   GlobalSpriteBank.loadAll()
 
-  --Setup Tilemap View
-  viewedTilemap = Tilemap.new()
-  populator = Populator.new()
+  --Load View Manager
+  GlobalViewManager = ViewManager.new()
 
-  populator.generateTileMapTerrainRandom(viewedTilemap)
+  --Create Gamestate
+  local defaultTilemap = Tilemap.new()
+  local populator = Populator.new()
+  populator.generateTileMapTerrainRandom(defaultTilemap)
 
-  ActiveCamera = TilemapCamera.new(
-    {
-      target = viewedTilemap,
-      position = {x = love.graphics.getWidth() / 2, y = love.graphics.getHeight() / 2},
-      extent = {half_width = love.graphics.getWidth() / 2, half_height = love.graphics.getHeight() / 2}
-    })
+  --Create Views
+  local def_view = PlanetsideTilemapView.new({
+    model = defaultTilemap,
+    rect = {x = 0, y = 0, w = love.graphics.getWidth(), h = love.graphics.getHeight()}
+  })
+  GlobalViewManager.push(def_view)
+
 end
 
 function love.update(dt)
+  --Debug mouse-to-hex output
+  if love.keyboard.isDown('f') then
+    print(inspect(GlobalViewManager.views[GlobalViewManager.activeView].camera.target.pixel_to_hex({x = love.mouse.getX(), y = love.mouse.getY()})))
+  end
   if not GLOBAL_PAUSE then
-    ActiveCamera.onUpdate(dt)
+    GlobalViewManager.update(dt)
   end
 end
 
 function love.draw()
-  local cam = ActiveCamera
-  local toDraw = cam.getSeen()
-  for i = 0, table.getn(toDraw.tiles) do
-    local computedPosition = {
-      x = toDraw.tiles[i].position.x - cam.position.x + cam.extent.half_width,
-      y = toDraw.tiles[i].position.y - cam.position.y + cam.extent.half_height
-    }
-    toDraw.tiles[i].draw(computedPosition)
+  if not GLOBAL_PAUSE then
+    GlobalViewManager.draw()
   end
 end
 
 function love.mousepressed(x, y, button)
-  ActiveCamera.onMousePressed(x,y,button)
+  GlobalViewManager.onMousePressed(x,y,button)
 end
 
 function love.mousereleased(x, y, button)
-  ActiveCamera.onMouseReleased(x,y,button)
+  GlobalViewManager.onMouseReleased(x,y,button)
+end
+
+function love.keypressed(key)
+  GlobalViewManager.onKeyPressed(key)
 end
 
 function love.focus(f)

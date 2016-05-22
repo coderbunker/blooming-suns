@@ -25,6 +25,8 @@ SpriteBank.new = function (init)
     self.sprites[identifier].spritesheet = self.spritesheets[my_ss]
     local tilesetW = self.spritesheets[my_ss].width
     local tilesetH = self.spritesheets[my_ss].height
+    local scale_x = me.scale_x
+    local scale_y = me.scale_y
 
     --Set sprite speed
     self.sprites[identifier].frame_duration = 0.5
@@ -39,14 +41,23 @@ SpriteBank.new = function (init)
 
   self.loadAll = function ()
     --Load Spritesheets First
-    self.loadSpritesheet("countryside", "assets/tilesets/countryside.png", 64, 64)
     self.loadSpritesheet("noble", "assets/tilesets/noble.png", 32, 32)
     self.loadSpritesheet("cadiz", "assets/tilesets/cadizship.png", 32, 32)
+    self.loadSpritesheet("oceantile", "assets/tilesets/oceantile.png", 168, 146)
+    self.loadSpritesheet("dunetile", "assets/tilesets/dunetile.png", 168, 146)
+    self.loadSpritesheet("grasstile", "assets/tilesets/grasstile.png", 168, 146)
+    self.loadSpritesheet("icetile", "assets/tilesets/icetile.png", 168, 146)
+    self.loadSpritesheet("tundratile", "assets/tilesets/tundratile.png", 168, 146)
+    self.loadSpritesheet("steppetile", "assets/tilesets/steppetile.png", 168, 146)
     --Load Sprites Next
     self.loadSprite("TestUnit", "assets/sprites/TestUnitSprite")
     self.loadSprite("TestSpaceUnit", "assets/sprites/TestSpaceUnitSprite")
+    self.loadSprite("Ocean", "assets/sprites/OceanTileSprite")
+    self.loadSprite("Desert", "assets/sprites/DuneTileSprite")
     self.loadSprite("Grass", "assets/sprites/GrassTileSprite")
-    self.loadSprite("Wood", "assets/sprites/WoodTileSprite")
+    self.loadSprite("Ice", "assets/sprites/IceTileSprite")
+    self.loadSprite("Tundra", "assets/sprites/TundraTileSprite")
+    self.loadSprite("Steppe", "assets/sprites/SteppeTileSprite")
   end
 
   return self
