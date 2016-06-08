@@ -1,23 +1,39 @@
-require('Tile');
-require('Tilemap');
-require('PlanetsideTilemapCameraComponent');
-require('PlanetsideTilemapView');
-require('AlertBoxView');
-require('SpriteBank');
-require('Sprite');
-require('SpriteInstance');
-require('Populator');
-require('Unit');
-require('ViewManager');
-require('ViewComponent');
-require('View');
+--game classes
+require('src/logic/Player');
+require('src/logic/Gamestate');
+require('src/logic/Stack');
+require('src/logic/Tile');
+require('src/logic/Tilemap');
+require('src/logic/Populator');
+require('src/logic/Unit');
 
+require('src/ui/component/PlanetsideTilemapCommandPanelComponent');
+require('src/ui/component/PlanetsideTilemapInspectorComponent');
+require('src/ui/component/PlanetsideTilemapCameraComponent');
+require('src/ui/component/PlanetsideMinimapComponent');
+require('src/ui/component/LabelComponent');
+require('src/ui/component/PanelComponent');
+require('src/ui/component/ImmediateButtonComponent');
+require('src/ui/component/ViewComponent');
+require('src/ui/view/ConfirmationView');
+require('src/ui/view/PlanetsideTilemapView');
+require('src/ui/view/AlertBoxView');
+require('src/ui/view/View');
+require('src/ui/ViewManager');
+
+
+require('src/resource/SpriteBank');
+require('src/resource/Sprite');
+require('src/resource/SpriteInstance');
+
+--libs
+require('lib/astar');
+require('lib/data_structures')
 inspect = require('lib/inspect');
 
 function love.load()
 
   --Load Tileset Sprites
-  --TODO: Make hexagonal tilesets
   GlobalSpriteBank = SpriteBank.new()
   GlobalSpriteBank.loadAll()
 
@@ -25,24 +41,18 @@ function love.load()
   GlobalViewManager = ViewManager.new()
 
   --Create Gamestate
-  local defaultTilemap = Tilemap.new()
-  local populator = Populator.new()
-  populator.generateTileMapTerrainRandom(defaultTilemap)
+  GlobalGameState = Populator.new().generateGameState()
 
   --Create Views
   local def_view = PlanetsideTilemapView.new({
-    model = defaultTilemap,
+    model = GlobalGameState.getTilemap(1),
     rect = {x = 0, y = 0, w = love.graphics.getWidth(), h = love.graphics.getHeight()}
   })
   GlobalViewManager.push(def_view)
-
 end
 
 function love.update(dt)
   --Debug mouse-to-hex output
-  if love.keyboard.isDown('f') then
-    print(inspect(GlobalViewManager.views[GlobalViewManager.activeView].camera.target.pixel_to_hex({x = love.mouse.getX(), y = love.mouse.getY()})))
-  end
   if not GLOBAL_PAUSE then
     GlobalViewManager.update(dt)
   end

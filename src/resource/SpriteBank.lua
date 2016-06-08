@@ -40,24 +40,30 @@ SpriteBank.new = function (init)
   end
 
   self.loadAll = function ()
+    --TODO: Load Definitions From File
+
     --Load Spritesheets First
     self.loadSpritesheet("noble", "assets/tilesets/noble.png", 32, 32)
     self.loadSpritesheet("cadiz", "assets/tilesets/cadizship.png", 32, 32)
+    self.loadSpritesheet("Destroyer", "assets/tilesets/Destroyer.png", 64, 64)
     self.loadSpritesheet("oceantile", "assets/tilesets/oceantile.png", 168, 146)
     self.loadSpritesheet("dunetile", "assets/tilesets/dunetile.png", 168, 146)
     self.loadSpritesheet("grasstile", "assets/tilesets/grasstile.png", 168, 146)
     self.loadSpritesheet("icetile", "assets/tilesets/icetile.png", 168, 146)
     self.loadSpritesheet("tundratile", "assets/tilesets/tundratile.png", 168, 146)
     self.loadSpritesheet("steppetile", "assets/tilesets/steppetile.png", 168, 146)
+    self.loadSpritesheet("endturn", "assets/tilesets/endturn.png", 162, 150)
     --Load Sprites Next
     self.loadSprite("TestUnit", "assets/sprites/TestUnitSprite")
     self.loadSprite("TestSpaceUnit", "assets/sprites/TestSpaceUnitSprite")
+    self.loadSprite("TestSeaUnit", "assets/sprites/TestSeaUnitSprite")
     self.loadSprite("Ocean", "assets/sprites/OceanTileSprite")
     self.loadSprite("Desert", "assets/sprites/DuneTileSprite")
     self.loadSprite("Grass", "assets/sprites/GrassTileSprite")
     self.loadSprite("Ice", "assets/sprites/IceTileSprite")
     self.loadSprite("Tundra", "assets/sprites/TundraTileSprite")
     self.loadSprite("Steppe", "assets/sprites/SteppeTileSprite")
+    self.loadSprite("EndTurn_UI", "assets/sprites/EndTurn_UI")
   end
 
   return self

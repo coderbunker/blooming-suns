@@ -1,9 +1,10 @@
--- TilemapCamera
+-- PlanetsideTilemapCameraComponent
 PlanetsideTilemapCameraComponent = {}
 
 PlanetsideTilemapCameraComponent.new = function (init)
   local init = init or {}
   local self = {
+    ui_rect = init.ui_rect,
     position = init.position,
     extent = init.extent,
     target = init.target,
@@ -13,12 +14,8 @@ PlanetsideTilemapCameraComponent.new = function (init)
     keyboard_speed = 800
   }
 
-  self.getSeen = function ()
-    local seen = {
-      tiles = {},
-      units = {},
-      indices = {}
-    }
+  self.getSeenMetadata = function ()
+    local metadata = {}
 
     --[[
       I take advantage of the layout of the world map indices here and the fact the camera doesn't rotate.
@@ -34,6 +31,7 @@ PlanetsideTilemapCameraComponent.new = function (init)
       --TODO: On tall maps I can improve this with a more refined approach, but the performance
       isn't so bad/critical on that part yet.
     ]]
+
     local ul,ur,lIdx,rIdx --extremum of camera view, in hex coords
 
     ul = self.target.pixel_to_hex({x = self.position.x - self.extent.half_width, y = self.position.y - self.extent.half_height})
@@ -53,18 +51,33 @@ PlanetsideTilemapCameraComponent.new = function (init)
       rIdx = #self.target.tiles
     end
 
-    for i, v in ipairs(self.target.tiles) do
-      if (i >= lIdx and i <= rIdx) or     --normal case
-         (wIdx ~= nil and i >= wIdx and i <= #self.target.tiles) or   --near left end of map
-         (eIdx ~= nil and i <= eIdx and i > 0) then --near right end of map
+    metadata.wIdx = wIdx
+    metadata.eIdx = eIdx
+    metadata.lIdx = lIdx
+    metadata.rIdx = rIdx
+    metadata.ul = ul
+    metadata.lr = lr
+
+    return metadata
+
+  end
+
+  self.getSeen = function ()
+    local seen = {
+      tiles = {},
+      units = {},
+      indices = {}
+    }
+
+    seen.indices = self.getSeenMetadata()
+
+    for i, v in pairs(self.target.tiles) do
+      if (i >= seen.indices.lIdx and i <= seen.indices.rIdx) or     --normal case
+         (seen.indices.wIdx ~= nil and i >= seen.indices.wIdx and i <= #self.target.tiles) or   --near left end of map
+         (seen.indices.eIdx ~= nil and i <= seen.indices.eIdx and i >= 0) then --near right end of map
         table.insert(seen.tiles, v)
       end
     end
-
-    seen.indices.wIdx = wIdx
-    seen.indices.eIdx = eIdx
-    seen.indices.lIdx = lIdx
-    seen.indices.rIdx = rIdx
 
     return seen
   end
@@ -93,6 +106,35 @@ PlanetsideTilemapCameraComponent.new = function (init)
     now = nil
   end
 
+  self.onMouseMoved = function (x, y)
+    --Mouse Pan
+    if self.dragLocus ~= nil then
+      self.position.x = self.dragLocus.camx + (self.dragLocus.x - x)
+      self.position.y = self.dragLocus.camy + (self.dragLocus.y - y)
+      moved = true
+    end
+  end
+
+  self.onDraw = function()
+    local toDraw = self.getSeen()
+    for i = 1, #toDraw.tiles do
+      if toDraw.tiles[i] ~= nil then
+        local computedPosition = {
+          x = toDraw.tiles[i].position.x - self.position.x + self.extent.half_width + self.ui_rect.x,
+          y = toDraw.tiles[i].position.y - self.position.y + self.extent.half_height + self.ui_rect.y
+        }
+        local idx = toDraw.tiles[i].idx
+        --East-West Tile Wrapping
+        if toDraw.indices.wIdx ~= nil and idx <= #self.target.tiles and idx >= toDraw.indices.wIdx then
+          computedPosition.x = computedPosition.x - (self.target.hex_size * self.target.num_cols * 3 / 2)
+        elseif toDraw.indices.eIdx ~= nil and idx >= 0 and idx <= toDraw.indices.eIdx then
+          computedPosition.x = computedPosition.x + (self.target.hex_size * self.target.num_cols * 3 / 2)
+        end
+        toDraw.tiles[i].draw(computedPosition)
+      end
+    end
+  end
+
   self.onUpdate = function (dt)
     local moved = false
     --Update tiles & units (for animation)
@@ -104,12 +146,6 @@ PlanetsideTilemapCameraComponent.new = function (init)
       seen.units[i].update(dt)
     end
 
-    --Mouse Pan
-    if self.dragLocus ~= nil then
-      self.position.x = self.dragLocus.camx + (self.dragLocus.x - love.mouse.getX())
-      self.position.y = self.dragLocus.camy + (self.dragLocus.y - love.mouse.getY())
-      moved = true
-    end
     --Keyboard Pan
     if love.keyboard.isDown('w','a','s','d') then
       if love.keyboard.isDown('w') then
@@ -134,9 +170,9 @@ PlanetsideTilemapCameraComponent.new = function (init)
       local leftWorldEdge = 0;
 
 
-      if topEdge < self.target.tilesize_y / 2 then self.position.y = self.extent.half_height + self.target.tilesize_y /2 end
-      if bottomEdge > (self.target.num_rows - 1) * math.sqrt(3) * self.target.hex_size then
-        self.position.y = (self.target.num_rows - 1) * math.sqrt(3) * self.target.hex_size - self.extent.half_height
+      if topEdge < -self.target.tilesize_y / 2 then self.position.y = self.extent.half_height - self.target.tilesize_y /2 end
+      if bottomEdge > self.target.num_rows * math.sqrt(3) * self.target.hex_size then
+        self.position.y = self.target.num_rows * math.sqrt(3) * self.target.hex_size - self.extent.half_height
       end
       if self.position.x > rightWorldEdge then self.position.x = self.position.x - rightWorldEdge end
       if self.position.x < leftWorldEdge then self.position.x = rightWorldEdge + self.position.x end
